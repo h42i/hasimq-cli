@@ -2,6 +2,9 @@
 
 require 'mqtt'
 
+PREFIX = "[hasimq-cli] "
+ERROR  = "[ERROR]"
+INFO   = "[INFO]"
 COLORS = { "white"  => "ffffff",
            "silver" => "c0c0c0",  
            "gray"   => "808080",
@@ -19,6 +22,14 @@ COLORS = { "white"  => "ffffff",
            "fuchsia"=> "ff00ff",
            "purple" => "800080" }
 
+def error(message)
+  raise PREFIX + ERROR + message
+end
+
+def log(message)
+  puts PREFIX + INFO + message
+end
+
 def publish(topic, payload)
   MQTT::Client.connect('mqtt://atlas.hasi:1883') do |c|
     c.publish(topic, payload)
@@ -26,12 +37,7 @@ def publish(topic, payload)
 end
 
 def subscribe(topic)
-  print "Waiting for data."
-  10.times do
-    print "."
-    sleep 0.5
-  end
-  puts "."
+  puts PREFIX + 
   MQTT::Client.connect('mqtt://atlas.hasi:1883') do |c|
     c.get(topic) do |message|
       return message
@@ -42,43 +48,46 @@ end
 if ARGV[0] == "set"
   if ARGV[1] == "socket"
     if (0..3).include?(ARGV[2].to_i)
-      if ARGV[3] == "on"      
+      case ARGV[3]
+      when "on"
         publish("hasi/sockets/#{ARGV[2]}/set_state", "on") 
-      elsif ARGV[3] == "off"
+      when "off"
         publish("hasi/sockets/#{ARGV[2]}/set_state", "off")
       else
-        puts "Invalid status."
+        error("#{ARGV[3]} is an invalid status.")
       end
     else
-      puts "Invalid socket number."
+      error("#{ARGV[2]} is an invalid socket.")
     end
   elsif ARGV[1] == "strip"
-    if COLORS[ARGV[2]].is_a? String
+    if COLORS.include?(ARGV[2])
       publish("hasi/lights/stripes/set_rgb", COLORS[ARGV[2]])
     else
-      puts "Invalid color name."
+      error("#{ARGV[2]} is an invalid color name.")
     end
   elsif ARGV[1] == "mpd"
-    if ARGV[2] == "play"
+    case ARGV[2]
+    when "play"
       publish("hasi/mpd/control", "play")
-    elsif ARGV[2] == "pause"
+    when "pause"
       publish("hasi/mpd/control", "pause")
     else
-      puts "Invalid command."
+      raise PREFIX + ERROR + "Invalid mpd command."
     end
   else
     puts "Invalid device."
   end
   
 elsif ARGV[0] == "get"
-  if ARGV[1] == "temperature"
+  case ARGV[1]
+  when "temperature"
     puts subscribe("hasi/sensors/outdoor/temperature")
-  elsif ARGV[1] == "pressure"
+  when "pressure"
     puts subscribe("hasi/sensors/outdoor/pressure")
-  elsif ARGV[2] == "random"
+  when "random"
     puts subscribe("hasi/events/random/byte")
   else
-    puts "Invalid argument"
+    error("#{ARGV[1]} is an invalid argument.")
   end
 elsif ARGV[0] == "help"
   puts "https://github.com/h42i/hasimq-cli"
