@@ -26,6 +26,12 @@ def publish(topic, payload)
 end
 
 def subscribe(topic)
+  print "Waiting for data."
+  10.times do
+    print "."
+    sleep 0.5
+  end
+  puts "."
   MQTT::Client.connect('mqtt://atlas.hasi:1883') do |c|
     c.get(topic) do |message|
       return message
