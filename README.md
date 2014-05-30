@@ -11,7 +11,7 @@ A simple command line MQTT client.
 
 ```./hasimq-cli set mpd (play|pause)```
 
-```./hasimq-cli get (temperature|pressure|light|random_byte)
+```./hasimq-cli get (temperature|pressure|light|random_byte)```
 
 
 Möglichkeiten für $color:
