@@ -25,6 +25,14 @@ def publish(topic, payload)
   end
 end
 
+def subscribe(topic)
+  MQTT::Client.connect('mqtt://atlas.hasi:1883') do |c|
+    c.get(topic) do |message|
+      return message
+    end
+  end
+end
+
 if ARGV[0] == "set"
   if ARGV[1] == "socket"
     if (0..3).include?(ARGV[2].to_i)
@@ -44,12 +52,30 @@ if ARGV[0] == "set"
     else
       puts "Invalid color name."
     end
+  elsif ARGV[1] == "mpd"
+    if ARGV[2] == "play"
+      publish("hasi/mpd/control", "play")
+    elsif ARGV[2] == "pause"
+      publish("hasi/mpd/control", "pause")
+    else
+      puts "Invalid command."
+    end
   else
     puts "Invalid device."
   end
   
 elsif ARGV[0] == "get"
-  # TODO
+  if ARGV[1] == "temperature"
+    puts subscribe("hasi/sensors/outdoor/temperature")
+  elsif ARGV[1] == "pressure"
+    puts subscribe("hasi/sensors/outdoor/pressure")
+  elsif ARGV[2] == "random"
+    puts subscribe("hasi/events/random/byte")
+  else
+    puts "Invalid argument"
+  end
+elsif ARGV[0] == "help"
+  puts "https://github.com/h42i/hasimq-cli"
 else
   puts "Usage:"
   puts "hasimq-cli set socket{1..3} (on|off)"
