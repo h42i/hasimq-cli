@@ -40,7 +40,7 @@ def subscribe(topic)
   puts PREFIX + 
   MQTT::Client.connect('mqtt://atlas.hasi:1883') do |c|
     c.get(topic) do |message|
-      return message
+      log(message)
     end
   end
 end
@@ -72,28 +72,25 @@ if ARGV[0] == "set"
     when "pause"
       publish("hasi/mpd/control", "pause")
     else
-      raise PREFIX + ERROR + "Invalid mpd command."
+      error("Invalid mpd command.")
     end
   else
-    puts "Invalid device."
+    error("Invalid device name.")
   end
   
 elsif ARGV[0] == "get"
   case ARGV[1]
   when "temperature"
-    puts subscribe("hasi/sensors/outdoor/temperature")
+    subscribe("hasi/sensors/outdoor/temperature")
   when "pressure"
-    puts subscribe("hasi/sensors/outdoor/pressure")
+    subscribe("hasi/sensors/outdoor/pressure")
   when "random"
-    puts subscribe("hasi/events/random/byte")
+    subscribe("hasi/events/random/byte")
   else
     error("#{ARGV[1]} is an invalid argument.")
   end
 elsif ARGV[0] == "help"
-  puts "https://github.com/h42i/hasimq-cli"
+  log("https://github.com/h42i/hasimq-cli")
 else
-  puts "Usage:"
-  puts "hasimq-cli set socket{1..3} (on|off)"
-  puts "hasimq-cli set strip (green|yellow|white...)"
-  puts "--------------------------------------------"
+  log("https://github.com/h42i/hasimq-cli")
 end
